@@ -1,0 +1,154 @@
+CREATE REST APIS WITH SPRING AND JAVA
+
+Travel Adventures API
+
+In this project, you will build an API that functions as a travel log. The API should allow you to create entries for new places you have visited, retrieve and update existing entries, and delete entries that may have been entered in error.
+
+Tasks: Let's get started!
+
+1.
+Before we get started, let’s review the files that have already been provided:
+
+TravelAdventuresController.java is where we will add our code. It contains the class we will use to map requests and retrieve resources.
+
+Adventure.java defines our Adventure class. It specifies the properties and methods we’ll need to create an adventure object. The properties in this class correspond to the name/value pairs in the Adventures.json file.
+
+AdventureRepository.java contains an interface used to extend CrudRepository from the Spring framework. The CrudRepository allows us to declare methods we can use for CRUD transactions. Though not all of these are explicitly listed in the file, here are the relevant methods provided by the AdventureRepository and CrudRepository interfaces:
+
+findByCountry(): accepts a string parameter and returns a list of adventures based on the country entered
+findByState(): accepts a string parameter and returns a list of adventures based on the state entered
+findById(): accepts an integer parameter and returns an adventure with the id entered. More info on this method below.
+findAll(): this method is declared in the CrudRepository interface. Since we are extending this interface we have access to this method, which returns all entities as an Iterable<T> where T is the entity type (Adventure in our case).
+save(): this method is also declared in the CrudRepository interface. It saves a specified entity to the repository and returns the saved version of the entity.
+delete(): this method is also declared in the CrudRepository interface. It removes a specified entity from the repository and returns nothing.
+data.sql contains the existing adventures in SQL format; it will be used to hold our data.
+
+Hint
+Review the existing files.
+
+2.
+We’ve been provided with an empty class which will be used for accepting requests. Start by declaring the class as a controller and use it as a base class that responds to requests for "/traveladventures".
+
+
+Hint
+The TravelAdventuresController class needs to be declared as a @RestController. It also needs to be mapped to the "/traveladventures" path.
+
+3.
+Recall that the AdventureRepository declares methods we can use for CRUD transactions. We have already instantiated an AdventureRepository object in the TravelAdventuresController class.
+
+Create a method that :
+
+Responds to GET requests for the controller
+Uses the findAll() method from the AdventureRepository
+Returns an Iterable of type Adventure
+
+Hint
+Use the @GetMapping annotation to have your method respond to GET requests.
+
+You can call the findAll() method like so:
+
+Iterable<Adventure> adventures = this.adventureRepository.findAll();
+4.
+Create a method that:
+
+Responds to GET requests like /traveladventures/bycountry/Greece
+Accepts a country parameter as a template path variable (in place of Greece here)
+Returns a list of adventures matching the requested country.
+
+Hint
+You’ll need to use these two annotations:
+
+@GetMapping
+@PathVariable
+5.
+Create a method that:
+
+Responds to GET requests like /traveladventures/bystate?state=Lisboa
+Accepts a state parameter as a query parameter (it would capture Lisboa here)
+Returns a list of adventures matching the requested state
+
+Hint
+You’ll need to use these two annotations:
+
+@GetMapping
+@RequestParam
+6.
+Create a method that:
+
+Responds to POST requests to /traveladventures
+Accepts an Adventure object in the request body
+Adds the given adventure to the repository
+
+Hint
+Create a method that responds to POST requests. Use the Adventure object as a parameter. Be sure to use the appropriate annotation so the object is properly deserialized.
+
+7.
+Create a method that:
+
+Responds to PUT requests like /traveladventures/10
+Accepts an adventure id as a template path variable (in place of 10 here) and an Adventure object in the request body
+Updates the adventure with id matching the path variable and returns the updated adventure
+Make sure the ID for the adventure actually exists: use the Optional<Adventure> type and its methods isPresent and get.
+
+If the ID entered does not exist, throw an exception and modify the HTTP status to NOT_FOUND.
+
+If the ID entered does exist, toggle the blogCompleted property to either true or false, depending on the value sent by the client, and return the updated adventure object.
+
+
+Hint
+If we need to check if a particular adventure exists, we could assign it to an Optional object with a specific type of Adventure. We can then check if the object exists and determine how to further process the request based on the decision.
+
+Optional<Adventure> adventureOptional = this.adventureRepository.findById(10);
+if (!adventureOptional.isPresent()) {
+  // throw exception
+}
+ 
+Adventure adventure = adventureOptional.get();
+8.
+Create a method that:
+
+Responds to DELETE requests like /traveladventures/10
+Accepts a path variable id (in place of 10 here)
+Removes adventure based on an entered ID.
+
+Hint
+We can only remove what already exists so check to make sure the object we want to delete exists. Assigning it to an Optional object and checking for its presence is a good way to make sure it exist.
+
+9.
+Time to test your endpoints! Try these curl commands and compare the result to what you see in data.sql.
+
+curl localhost:4001/traveladventures
+ 
+curl localhost:4001/traveladventures/bycountry/Greece
+ 
+curl localhost:4001/traveladventures/bystate?state=Lisboa
+ 
+curl -d '{  "id": "353",  "date": "05/05/2022", "country": "Korea", "city": "Jeju City", "state": "Jeju Province", "numPhotos": "96", "blogCompleted": "false" }'  -H "Content-Type: application/json" localhost:4001/traveladventures 
+ 
+curl -X PUT -d '{  "id": "5",  "date": "04/27/2020", "country": "Panama", "city": "Capira", "state": "", "numPhotos": "101", "blogCompleted": "true" }' -H "Content-Type: application/json" localhost:4001/traveladventures/5
+ 
+curl -X DELETE localhost:4001/traveladventures/1
+Next steps
+10.
+Good job on finishing this project! If you’d like an optional challenge, try these:
+
+Currently, you can send multiple POST requests with the same data and never get an error.
+
+Fix this by checking for an existing adventure and returning a response with appropriate HTTP status code if it already exists.
+
+We can also send a poorly formatted adventure in our request (notice the date and numPhotos values):
+
+curl -d '{  "id": "353",  "date": "0", "country": "Korea", "city": "Jeju City", "state": "Jeju Province", "numPhotos": "-30", "blogCompleted": "true" }'  -H "Content-Type: application/json" localhost:4001/traveladventures 
+Fix this by adding data validation to the methods which take an adventure in the request body.
+
+
+Hint
+For conflicting POST requests, we recommend the status code 409. Search the definition for HttpStatus in the Spring repository to find the corresponding enum value.
+
+For data validation, use the Pattern class and define validateDate and validateNumPhotos methods.
+
+Here’s an example pattern for ZIP codes:
+
+import java.util.regex.Pattern;
+ 
+private final Pattern zipCodePattern = Pattern.compile("\\d{5}");
